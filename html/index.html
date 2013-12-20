@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="shortcut icon" href="../../docs-assets/ico/favicon.png">
+
+<title>Dictionary</title>
+
+<!-- Bootstrap core CSS -->
+<link href="/stylesheets/bootstrap.css" rel="stylesheet">
+<link href="/stylesheets/dictionary.css" rel="stylesheet">
+
+<!-- Bootstrap core JavaScript
+    ================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/dictionary.js"></script>
+
+
+<!-- Just for debugging purposes. Don't actually copy this line! -->
+<!--[if lt IE 9]><script src="../../docs-assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+	{% include "header.html" %}
+
+	<form id="save_word" action="/save" method="post">
+		<div class="form-group dictionary-word-form">
+			<input type="text" id="input_word" class="form-control" placeholder="Word"
+				name="word">
+		</div>
+
+		<div class="form-group dictionary-word-form">
+			<textarea class="form-control dictionary-description-input"
+				placeholder="Descrption" name="description"></textarea>
+		</div>
+
+		<div class="form-group dictionary-word-form">
+			<textarea class="form-control dictionary-example-input"
+				placeholder="Example" name="example"></textarea>
+		</div>
+		<div style="margin-left: 15px; width: 31%;">
+			<button type="submit" class="btn btn-success dictionary-btn-save">Save</button>
+		</div>
+	</form>
+
+	<script type="text/javascript">
+      var frm = $("#save_word");
+      frm.submit(function (event) {
+        // Stop form from submitting normally
+        event.preventDefault();
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize(),
+            success: function (data) {
+              $(':input', frm).val('');
+              $("#input_word").focus();
+            },
+            error: function(data) {
+              alert('Failed to save');
+            }
+        });
+        return false;
+    });
+</script>
+
+</body>
+</html>

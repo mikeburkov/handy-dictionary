@@ -1,0 +1,16 @@
+.dictionary-word-form {
+  width: 33%;
+  margin-left: 15px;
+}
+
+.dictionary-description-input {
+  height: 100px !important;
+}
+
+.dictionary-example-input {
+  height: 150px !important;
+}
+
+.dictionary-btn-save {
+  float: right;
+}

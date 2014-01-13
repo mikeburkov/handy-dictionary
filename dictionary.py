@@ -4,14 +4,18 @@ Created on Nov 14, 2013
 @author: mburkov
 '''
 import os
+import random
+import json
 
+from google.appengine.api import search
+from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import template
-from google.appengine.api import search
 import webapp2
 
 
 PARENT_KEY = 'dictionary'
+DEFAULT_PAGE_SIZE = 5
 
 
 def create_dictionary_key():
@@ -34,7 +38,6 @@ def index_document(word, description, example):
       index.put(d)
     except search.Error:
       print search.Error
-
 
 class Word(ndb.Model):
     word = ndb.StringProperty(indexed=True)
@@ -100,6 +103,16 @@ class ViewAllWordsPage(webapp2.RequestHandler):
         }
         self.response.out.write(template.render(get_template_path('view_words.html'), template_values))
 
+class GetRandomWords(webapp2.RequestHandler):
+    def get(self):
+        words_query = Word.query(ancestor=create_dictionary_key())
+        query_offset = random.randrange(words_query.count() - DEFAULT_PAGE_SIZE + 1)
+        words = words_query.fetch(5, offset=query_offset)
+        result = dict()
+        for word in words:
+            result[word.word] = [word.description, word.example]
+        self.response.out.write(json.JSONEncoder().encode(result))
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         self.response.out.write(template.render(get_template_path('index.html'), dict()))
@@ -108,5 +121,6 @@ application = webapp2.WSGIApplication([
                                        ('/', MainPage),
                                        ('/save', PersistWordHandler),
                                        ('/viewall', ViewAllWordsPage),
+                                       ('/random', GetRandomWords),
                                        ('/search', LookupWordHandler), ], debug=True)
 

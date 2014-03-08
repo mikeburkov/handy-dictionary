@@ -32,6 +32,19 @@
 	{% include "header.html" %}
 
 	<div class="container">
+        <ul class="pager">
+            {% if b_cursor %}
+			<li><a href="/viewall?b_cursor={{b_cursor}}">Previous</a></li>
+            {% else %}
+			<li class="disabled"><a href="#">Previous</a></li>
+			{% endif %}
+			{% if f_cursor %}
+			<li><a href="/viewall?f_cursor={{f_cursor}}">Next</a></li>
+			{% else %}
+			<li class="disabled"><a href="#">Next</a></li>
+			{% endif %}
+		</ul>
+	</div>
 
 		{% for word in words %}
 
@@ -41,6 +54,14 @@
 			<div class="col-md-6">{{ word.example|linebreaks }}</div>
 		</div>
 		{% endfor %}
+
+		{% if pages %}
+                <ul class="pager">
+			<li><a href="#">Previous</a></li>
+			<li><a href="#">Next</a></li>
+		</ul>
+	</div>
+		{% endif %}
 	</div>
 
 

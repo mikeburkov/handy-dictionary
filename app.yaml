@@ -11,6 +11,9 @@ handlers:
 - url: /js
   static_dir: js
 
+- url: /random
+  script: dictionary.application
+
 - url: /.*
   script: dictionary.application
   login: admin

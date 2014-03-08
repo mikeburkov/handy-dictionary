@@ -3,19 +3,22 @@ Created on Nov 14, 2013
 
 @author: mburkov
 '''
-import os
-import random
-import json
 
+from __future__ import division
 from google.appengine.api import search
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 from google.appengine.ext.webapp import template
+import json
+import math
+import os
+import random
 import webapp2
 
 
 PARENT_KEY = 'dictionary'
 DEFAULT_PAGE_SIZE = 5
+WORDS_PER_PAGE = 30
 
 
 def create_dictionary_key():
@@ -93,25 +96,42 @@ class LookupWordHandler(webapp2.RequestHandler):
 
 class ViewAllWordsPage(webapp2.RequestHandler):
     def get(self):
-        words_query = Word.query(ancestor=create_dictionary_key()).order(-Word.date)
-        words = words_query.fetch()
+        f_cursor_param = self.request.get('f_cursor')
+        b_cursor_param = self.request.get('b_cursor')
+
+        template_values = {}
+        if b_cursor_param:	
+            words_query = Word.query(ancestor=create_dictionary_key()).order(Word.date)
+            b_cursor = Cursor(urlsafe=self.request.get('b_cursor'))
+            template_values['f_cursor'] = b_cursor.urlsafe()
+            rev_curs = b_cursor.reversed()	
+            words, next_cursor, more = words_query.fetch_page(WORDS_PER_PAGE, start_cursor=rev_curs)
+            words.reverse()
+            if more and next_cursor:
+                template_values['b_cursor'] = next_cursor.reversed().urlsafe()
+        else:
+            words_query = Word.query(ancestor=create_dictionary_key()).order(-Word.date)
+            f_cursor = Cursor(urlsafe=self.request.get('f_cursor'))
+            template_values['b_cursor'] = f_cursor.urlsafe() 
+            words, next_cursor, more = words_query.fetch_page(WORDS_PER_PAGE, start_cursor=f_cursor)
+            if more and next_cursor:
+			    template_values['f_cursor'] = next_cursor.urlsafe() 
         wordDTOs = []
         for word in words:
             wordDTOs.append(WordDTO(word.word, word.description, word.example))
-        template_values = {
-            'words': wordDTOs
-        }
+        template_values['words'] = wordDTOs
         self.response.out.write(template.render(get_template_path('view_words.html'), template_values))
 
 class GetRandomWords(webapp2.RequestHandler):
     def get(self):
         words_query = Word.query(ancestor=create_dictionary_key())
-        query_offset = random.randrange(words_query.count() - DEFAULT_PAGE_SIZE + 1)
+        randrange = words_query.count() if words_query.count() < DEFAULT_PAGE_SIZE else words_query.count() - DEFAULT_PAGE_SIZE + 1
+        query_offset = random.randrange(randrange)
         words = words_query.fetch(5, offset=query_offset)
-        result = dict()
+        result = []
         for word in words:
-            result[word.word] = [word.description, word.example]
-        self.response.out.write(json.JSONEncoder().encode(result))
+            result.append({'word' : word.word, 'description' : word.description, 'example' : word.example})
+        self.response.out.write(json.dumps(result))
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
